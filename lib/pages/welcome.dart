@@ -25,7 +25,7 @@ class _WelcomeState extends State<Welcome> {
                     padding: EdgeInsets.all(8.0),
                     child: Center(
                         child: Text(
-                      "SARVA",
+                      "PRAVA",
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white),
                     )),
@@ -34,7 +34,7 @@ class _WelcomeState extends State<Welcome> {
                     padding: EdgeInsets.all(8.0),
                     child: Center(
                         child: Text(
-                      "NO INTERNET WE GOT YOU",
+                      "NO INTERNET? WE GOT YOUR BACK!",
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white),
                     )),

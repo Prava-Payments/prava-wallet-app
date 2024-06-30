@@ -21,7 +21,7 @@ class _AuthState extends State<Auth> {
 
     String finalMessage = marker+message;
     await BackgroundSms.sendMessage(
-      phoneNumber: "7558436164", // Replace with actual phone number
+      phoneNumber: "9915712441", // Replace with actual phone number
       message: finalMessage,
     );
 
