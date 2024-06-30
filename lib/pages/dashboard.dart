@@ -22,6 +22,8 @@ class _Dashboard extends State<Dashboard> {
   String? usdcBalance; // Variable to store the USDC balance
   String? publicAddress; // Variable to store the public address
   String? tokenValue;
+  String? sessionStr;
+  String? walletAddr;
 
   @override
   void initState() {
@@ -39,8 +41,7 @@ class _Dashboard extends State<Dashboard> {
             smsList.insert(0, smsData);
 
             // Check for specific content and update the balanceMessage
-            if (smsData.body
-                .contains("Sarva, from: relay, to: client, balance:")) {
+            if (smsData.body.contains("Sarva, from: relay, to: client")) {
               balanceMessage = smsData.body;
               extractBalances(balanceMessage!);
             }
@@ -50,32 +51,17 @@ class _Dashboard extends State<Dashboard> {
     });
   }
 
-  String? extractEncodeMsg(String messageContent) {
-    try {
-      final base64Part =
-          messageContent.substring(messageContent.indexOf("Sarva") + 5).trim();
-      final decodedBytes = base64Decode(base64Part);
-      final decodedMessage = utf8.decode(decodedBytes);
-
-      // Extract the instruction from the decoded message
-      final instruction = decodedMessage
-          .split(", ")
-          .firstWhere((part) => part.startsWith("inst:"))
-          .split(":")[1];
-      return instruction;
-    } catch (e) {
-      print("Error decoding message: $e");
-      return null;
-    }
-  }
-
   void extractBalances(String message) {
-    // Regular expressions to extract the ETH, USDC balances, and nonce
+    // Regular expressions to extract the ETH, USDC balances, session string, and wallet address
     final ethRegex = RegExp(r'ETH:\s*([0-9.]+)');
     final usdcRegex = RegExp(r'USDC:\s*([0-9.]+)');
+    final sessionRegex = RegExp(r'session:\s*([a-zA-Z0-9]+)');
+    final walletRegex = RegExp(r'wallet:\s*([a-zA-Z0-9]+)');
 
     final ethMatch = ethRegex.firstMatch(message);
     final usdcMatch = usdcRegex.firstMatch(message);
+    final sessionMatch = sessionRegex.firstMatch(message);
+    final walletMatch = walletRegex.firstMatch(message);
 
     if (ethMatch != null && ethMatch.groupCount > 0) {
       ethBalance = ethMatch.group(1);
@@ -83,6 +69,16 @@ class _Dashboard extends State<Dashboard> {
 
     if (usdcMatch != null && usdcMatch.groupCount > 0) {
       usdcBalance = usdcMatch.group(1);
+    }
+
+    if (sessionMatch != null && sessionMatch.groupCount > 0) {
+      sessionStr = sessionMatch.group(1);
+      print("your session str:$sessionStr");
+    }
+
+    if (walletMatch != null && walletMatch.groupCount > 0) {
+      walletAddr = walletMatch.group(1);
+      print("your wallet addr:$walletAddr");
     }
   }
 
@@ -99,21 +95,19 @@ class _Dashboard extends State<Dashboard> {
     }
   }
 
-  void refetchBalance() {
-    // Simulate fetching public address from keychain
-    setState(() {
-      publicAddress =
-          "0xYourPublicKeyHere"; // Replace with actual logic to fetch from keychain
-    });
+  void refetchBalance() {}
 
-    // Send background SMS with public address
-    BackgroundSms.sendMessage(
-      phoneNumber: "7558436164", // Replace with actual phone number
-      message: "Sarva, from: client, to: relay, public_address: $publicAddress",
+  void generateSign() async {
+    String marker = 'Sarva';
+    String message =
+        ", from: client, to: relay, inst:sendETH, wallet:$publicAddress, token:$tokenValue, session:$sessionStr";
+    String finalMessage = marker + message;
+    print(finalMessage);
+    await BackgroundSms.sendMessage(
+      phoneNumber: "7558436164",
+      message: finalMessage,
     );
   }
-
-  void generateSign() async {}
 
   @override
   void dispose() {
@@ -212,7 +206,9 @@ class _Dashboard extends State<Dashboard> {
                               children: [
                                 Expanded(
                                     child: ElevatedButton(
-                                        onPressed: generateSign,
+                                        onPressed: () {
+                                          generateSign();
+                                        },
                                         child: Text("Send Tokens")))
                               ],
                             ),
@@ -234,36 +230,6 @@ class _Dashboard extends State<Dashboard> {
                         ],
                       ),
                     ),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Balance Update:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 10),
-                          Text(balanceMessage!),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: smsList.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          child: ListTile(
-                            title: Text(smsList[index].body),
-                            subtitle: Text("From: ${smsList[index].sender}"),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
                 ],
               ],
             ),

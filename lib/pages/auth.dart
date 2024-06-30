@@ -14,65 +14,12 @@ class _AuthState extends State<Auth> {
   String _privateKey = "";
   String _publicAddress = '';
 
-  void _computePublicAddress() {
-    try {
-      final wallet = Wallet.fromPrivateKey(_privateKey);
-      setState(() {
-        if (wallet.address != null && wallet.address is String) {
-          _publicAddress = wallet.address!;
-        } else {
-          _publicAddress = 'Invalid private key';
-        }
-
-        print("Your public address is $_publicAddress");
-
-        // Show alert dialog with public address
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Public Address"),
-              content: Text('''
-Your public address is $_publicAddress
-Import your account via SMS'''),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () async {
-                    await BackgroundSms.sendMessage(
-                      phoneNumber:
-                          "7558436164", // Replace with actual phone number
-                      message:
-                          "Sarva, from: client, to: relay, public_address: $_publicAddress",
-                    );
-
-                    // Save the private key and public address securely
-                    await storage.write(key: 'privateKey', value: _privateKey);
-                    await storage.write(
-                        key: 'publicAddress', value: _publicAddress);
-
-                    Navigator.pushNamed(context, "/dashboard");
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
-      });
-    } catch (e) {
-      setState(() {
-        _publicAddress = 'Invalid private key';
-      });
-    }
-  }
-
   void _signUp() async {
     String marker = 'Sarva';
     String message =
         ", from: client, to: relay, inst:signup";
 
-    String encodedMessage = base64Encode(utf8.encode(message));
-    String finalMessage = marker+encodedMessage;
+    String finalMessage = marker+message;
     await BackgroundSms.sendMessage(
       phoneNumber: "7558436164", // Replace with actual phone number
       message: finalMessage,
