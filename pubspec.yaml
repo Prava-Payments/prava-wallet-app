@@ -45,6 +45,10 @@ dependencies:
   pointycastle: ^3.2.0
   flutter_ethers: ^1.0.1
   background_sms: ^0.0.1
+  readsms: ^0.1.0+3
+  permission_handler: ^11.3.1
+  web3dart: ^2.6.1
+  flutter_secure_storage: ^4.2.1
 
 dev_dependencies:
   flutter_test:
